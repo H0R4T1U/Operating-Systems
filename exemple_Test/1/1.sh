@@ -2,7 +2,7 @@
 
 if [[ $# -lt 1 ]]; then
 	echo "Utilizare ./1.sh file1 file2 ..."
-	exit 0 
+	exit  
 fi
 
 read var

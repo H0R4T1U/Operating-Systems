@@ -59,6 +59,7 @@ void takeFromQueue(char* file){
 void* threaded_read(){
     char file[100];
     char buffer[READ_SIZE + 1];
+    int local_count = 0;
     while(current != NULL){
 
         takeFromQueue(file);
@@ -76,9 +77,7 @@ void* threaded_read(){
             char *token = strtok_r(buffer, " \t\n",&saveptr); // Split by space, tab, newline
             while (token != NULL) {
                 if(strcmp(token,phrase) == 0){
-                    pthread_mutex_lock(&m);
-                    count += 1;
-                    pthread_mutex_unlock(&m);
+                    local_count += 1;
                 }
                 token = strtok_r(NULL, " \t\n",&saveptr); // Get next word
             }
@@ -91,6 +90,9 @@ void* threaded_read(){
         close(fd);
         memset(file, 0, sizeof(file));
     }
+    pthread_mutex_lock(&m);
+    count += local_count;
+    pthread_mutex_unlock(&m);
     return NULL;
 }
 void get_files(char* PATH ){
@@ -113,7 +115,7 @@ int main(int argc, char** argv){
         printf("Usage: ./main $file_path $phrase");
         exit(1);
     }
-    pthread_t t[10];
+    pthread_t t[16];
 
     strcpy(path,argv[1]);
     strcpy(phrase,argv[2]);
@@ -123,10 +125,10 @@ int main(int argc, char** argv){
     get_files(argv[1]);
 
     current = files;
-    for(int i=0; i<10; i++) {
+    for(int i=0; i<16; i++) {
         pthread_create(&t[i], NULL, threaded_read, NULL);
     }
-    for(int i=0; i<10; i++) {
+    for(int i=0; i<16; i++) {
         pthread_join(t[i], NULL);
     }
     pthread_mutex_destroy(&m);

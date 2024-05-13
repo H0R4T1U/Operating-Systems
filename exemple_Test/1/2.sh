@@ -1,5 +1,7 @@
 #include /bin/bash
 
-while read -r line;do
-	echo "$line"
+while read  line;do
+	for word in $line; do
+		echo $word
+	done
 done<"a.txt"
